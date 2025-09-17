@@ -147,13 +147,15 @@ d_A0_E0 <- function(data, trt) {
 #   learners_outcome = c("SL.xgboost", "SL.glm")
 # )
 
+known_prob_fun1 <- function(task, fold) rep(0.5, nrow(task$age))
+
 
 
 X <- c("psych_h", "age", "mf") # baseline variables
 Z <- c("SS", "B") # post-treatment confounders
 
 # d_A1_E0
-fit_sdr_A1E0 <- lmtp_sdr(
+fit_sdr_A1E0 <- lmtp_tmle(
   data = df,
   trt = c("A", "E"), # second timepoint's "treatment"/exposure is expectancy, E
   outcome = "Y",
@@ -165,8 +167,8 @@ fit_sdr_A1E0 <- lmtp_sdr(
   id = "id",
   mtp = FALSE,
   folds = 2,
-  learners_trt = c("SL.glm", "SL.xgboost"),
-  learners_outcome = c("SL.xgboost", "SL.glm")
+  learners_trt = known_prob_fun1, # known_prob_fun1
+  learners_outcome =c("SL.xgboost", "SL.glm")
 )
 
 # d_A0_E0

@@ -1,8 +1,8 @@
 # mediation analysis vignette data simulation
 
 CDE <- 3 # causal effect size
-n <- 250 # sample size
-set.seed(123) # random seed 
+n <- 250 # sample size # 250
+set.seed(123) # random seed # 123
 save.wd <- "~/Desktop/NIMH Research/Causal/Causal_Psychedelics/Paper/Mediation_Vignette"
   
 # treatment

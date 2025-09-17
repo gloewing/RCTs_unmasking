@@ -1833,8 +1833,8 @@ use a relative risk or other contrast type.</p>
 <pre><code>## LMTP Contrast: additive</code></pre>
 <pre><code>## Null hypothesis: theta == 0</code></pre>
 <pre><code>## 
-##   shift   ref estimate std.error conf.low conf.high p.value
-## 1  2.29 -1.22     3.51     0.404     2.72       4.3  &lt;0.001</code></pre>
+##   shift    ref estimate std.error conf.low conf.high p.value
+## 1  2.37 -0.786     3.15    0.0987     2.96      3.35  &lt;0.001</code></pre>
 <p>In this dataset, we simulated the true <span class="math inline">\(CDE = 3\)</span>. We can see the confidence
 intervals contain the true value and the point estimate is reasonably
 close to the truth.</p>
@@ -1885,7 +1885,7 @@ fit_sdr_A0E1 &lt;- lmtp::lmtp_sdr(
 lmtp::lmtp_contrast(fit_sdr_A1E1, ref = fit_sdr_A0E1, type = &quot;additive&quot;)</code></pre>
 <pre><code>## 
 ##   shift   ref estimate std.error conf.low conf.high p.value
-## 1  1.64 -1.42     3.06    0.0393     2.98      3.13  &lt;0.001</code></pre>
+## 1  1.65 -1.41     3.06    0.0389     2.98      3.14  &lt;0.001</code></pre>
 <p>Again we can see the high expectancy contrast yields a value close to
 the true <span class="math inline">\(CDE=3\)</span>.</p>
 </div>
