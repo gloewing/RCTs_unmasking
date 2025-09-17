@@ -7,9 +7,9 @@ library(lmtp)
 
 expit <- function(x){ exp(x) / (1 + exp(x))}
 CDE <- 3
-n <- 1000 # sample size
+n <- 100 # sample size
 
-set.seed(12347)
+set.seed(1)
 
 # treatment
 trt.probability <- 0.5 # 50/50 trt/control split
@@ -29,7 +29,7 @@ id <- 1:n
 set.setting <- A * abs(rnorm(n)) + rbinom(n, size = 1, prob = 0.5) # set/setting variable randomly drawn
 
 # belief
-beta.B <- rnorm(3) # coefficients for belief model
+beta.B <- rep(1, 3) #rnorm(3) # coefficients for belief model
 belief.prob <- expit( beta.B[1] * A * set.setting + 
                         beta.B[2] * A + 
                         beta.B[3] * set.setting) # arbitrary belief model
@@ -45,7 +45,7 @@ E.causes <- as.matrix(data.frame(A = A,
 
 # expectancy
 # intercept.E <- -3 # arbitary model intercept
-beta.E <- rnorm(ncol(E.causes)) # draw expectancy model coefficients
+beta.E <- rep(1, ncol(E.causes)) #rnorm(ncol(E.causes)) # draw expectancy model coefficients
 exp_prob <- expit(E.causes %*% beta.E ) # probability of expectancy for each individual
 E <- sapply(exp_prob, function(x) rbinom(1, 1, prob = x)) # draw expectancy as binary
 
@@ -54,7 +54,7 @@ Y.mat <- as.matrix(cbind(E.causes, E))
 beta.Y <- rnorm(ncol(Y.mat))
 CDE.idx <- which(colnames(Y.mat) == "A")
 beta.Y[CDE.idx] <- CDE # set CDE
-Y <- Y.mat %*% beta.Y + rnorm(n)
+Y <- Y.mat %*% beta.Y + rnorm(n, mean = 0, sd = 0.25)
 
 df <- data.frame(A = A,
                  E = E, 
@@ -126,8 +126,8 @@ d_A0_E0 <- function(data, trt) {
 #   id = "id",
 #   mtp = FALSE,
 #   folds = 2,
-#   learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"), 
-#   learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+#   learners_trt = c("SL.glm", "SL.xgboost"), 
+#   learners_outcome = c("SL.xgboost", "SL.glm")
 # )
 
 # should work but doesnt
@@ -143,10 +143,14 @@ d_A0_E0 <- function(data, trt) {
 #   id = "id",
 #   mtp = FALSE,
 #   folds = 2,
-#   learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"),
-#   learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+#   learners_trt = c("SL.glm", "SL.xgboost"),
+#   learners_outcome = c("SL.xgboost", "SL.glm")
 # )
 
+
+
+X <- c("psych_h", "age", "mf") # baseline variables
+Z <- c("SS", "B") # post-treatment confounders
 
 # d_A1_E0
 fit_sdr_A1E0 <- lmtp_sdr(
@@ -155,15 +159,14 @@ fit_sdr_A1E0 <- lmtp_sdr(
   outcome = "Y",
   outcome_type = "continuous",
   baseline = NULL, # no time-varying confounders: Baseline confounders are always included in Ht according to documentation
-  # time_vary = list(c("dummy"), c("B", "SS", "psych_h", "age", "mf")), # confounders of E -> Y path
-  time_vary = list(c("SS", "psych_h", "age", "mf"), c("B")), # confounders of E -> Y path
+  time_vary = list(X, Z), # confounders of E -> Y path
   k = Inf, # whether to use all previous history variables pooled/concatenated
   shift = d_A1_E0,
   id = "id",
   mtp = FALSE,
   folds = 2,
-  learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"),
-  learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+  learners_trt = c("SL.glm", "SL.xgboost"),
+  learners_outcome = c("SL.xgboost", "SL.glm")
 )
 
 # d_A0_E0
@@ -173,15 +176,14 @@ fit_sdr_A0E0 <- lmtp_sdr(
   outcome = "Y",
   outcome_type = "continuous",
   baseline = NULL, # no time-varying confounders: Baseline confounders are always included in Ht according to documentation
-  # time_vary = list(c("dummy"), c("B", "SS", "psych_h", "age", "mf")), # confounders of E -> Y path
-  time_vary = list(c("SS", "psych_h", "age", "mf"), c("B")), # confounders of E -> Y path
+  time_vary = list(X, Z), # confounders of E -> Y path
   k = Inf, # whether to use all previous history variables pooled/concatenated
   shift = d_A0_E0,
   id = "id",
   mtp = FALSE,
   folds = 2,
-  learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"),
-  learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+  learners_trt = c("SL.glm", "SL.xgboost"),
+  learners_outcome = c("SL.xgboost", "SL.glm")
 )
 
 CDE.idx <- which(colnames(Y.mat) == "A")
@@ -192,7 +194,6 @@ lmtp_contrast(fit_sdr_A1E0, ref = fit_sdr_A0E0, type = "additive")
 
 
 # E == 1
-
 # d_A1_E0
 fit_sdr_A1E1 <- lmtp_sdr(
   data = df,
@@ -200,15 +201,14 @@ fit_sdr_A1E1 <- lmtp_sdr(
   outcome = "Y",
   outcome_type = "continuous",
   baseline = NULL, # no time-varying confounders: Baseline confounders are always included in Ht according to documentation
-  # time_vary = list(c("dummy"), c("B", "SS", "psych_h", "age", "mf")), # confounders of E -> Y path
-  time_vary = list(c("SS", "psych_h", "age", "mf"), c("B")), # confounders of E -> Y path
+  time_vary = list(X, Z), # confounders of E -> Y path
   k = Inf, # whether to use all previous history variables pooled/concatenated
   shift = d_A1_E1,
   id = "id",
   mtp = FALSE,
   folds = 2,
-  learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"),
-  learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+  learners_trt = c("SL.glm", "SL.xgboost"),
+  learners_outcome = c("SL.xgboost", "SL.glm")
 )
 
 # d_A0_E0
@@ -218,15 +218,14 @@ fit_sdr_A0E1 <- lmtp_sdr(
   outcome = "Y",
   outcome_type = "continuous",
   baseline = NULL, # no time-varying confounders: Baseline confounders are always included in Ht according to documentation
-  # time_vary = list(c("dummy"), c("B", "SS", "psych_h", "age", "mf")), # confounders of E -> Y path
-  time_vary = list(c("SS", "psych_h", "age", "mf"), c("B")), # confounders of E -> Y path
+  time_vary = list(X, Z), # confounders of E -> Y path
   k = Inf, # whether to use all previous history variables pooled/concatenated
   shift = d_A0_E1,
   id = "id",
   mtp = FALSE,
   folds = 2,
-  learners_trt = c("SL.glm", "SL.xgboost", "SL.gam"),
-  learners_outcome = c("SL.xgboost", "SL.glm", "SL.gam")
+  learners_trt = c("SL.glm", "SL.xgboost"),
+  learners_outcome = c("SL.xgboost", "SL.glm")
 )
 
 lmtp_contrast(fit_sdr_A1E1, ref = fit_sdr_A0E1, type = "additive")
