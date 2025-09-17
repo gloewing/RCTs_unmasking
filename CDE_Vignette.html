@@ -1633,7 +1633,11 @@ Unmasking</h1>
 <h2>lmtp R package</h2>
 <p>We use the <span class="math inline">\(\texttt{lmtp}\)</span> R
 package. In addition to the two papers in the references section below,
-the following resources may also be helpful: - 1) <a href="https://muse.jhu.edu/pub/56/article/883479/pdf" class="uri">https://muse.jhu.edu/pub/56/article/883479/pdf</a> - 2) <a href="https://beyondtheate.com/" class="uri">https://beyondtheate.com/</a></p>
+the following resources may also be helpful:</p>
+<ul>
+<li><a href="https://muse.jhu.edu/pub/56/article/883479/pdf" class="uri">https://muse.jhu.edu/pub/56/article/883479/pdf</a></li>
+<li><a href="https://beyondtheate.com/" class="uri">https://beyondtheate.com/</a></li>
+</ul>
 <div id="data-formating" class="section level3">
 <h3>Data Formating</h3>
 <p>Let’s load the data, look at the format, and work through a simple
@@ -1742,12 +1746,13 @@ the type (here it is continuous but this package also handles survival
 and binary outcome types). Since treatment <span class="math inline">\(A\)</span> is randomized at baseline, we can
 specify <code>baseline = NULL</code>. In the confounders list
 <code>time_vary</code>, we specify that it is a list that has two
-elements, the first list contains a vector of variable names that are
-confounders for <span class="math inline">\(A \to Y\)</span> and the
-second for <span class="math inline">\(E \to Y\)</span>. Because we set
-the variable <code>k = Inf</code>, these variables are pooled across
-timepoints, so the <code>lmtp_sdr</code> function treats all the
-variables in <span class="math inline">\(X\)</span> and <span class="math inline">\(Z\)</span> (concatenated together) as the
+elements: the first element in the list contains a vector of variable
+names that are confounders for <span class="math inline">\(A \to
+Y\)</span>, and the second list element is a vector of variable names
+for the confounders of <span class="math inline">\(E \to Y\)</span>.
+Because we set the variable <code>k = Inf</code>, these variables are
+pooled across timepoints, so the <code>lmtp_sdr</code> function treats
+all the variables in <span class="math inline">\(X\)</span> and <span class="math inline">\(Z\)</span> (concatenated together) as the
 confounders of the <span class="math inline">\(E \to Y\)</span> pathway.
 Since <span class="math inline">\(A\)</span> is randomized, we can
 either set the known treatment randomization probabilities, or estimate
@@ -1759,22 +1764,23 @@ sequences where <span class="math inline">\(e=0\)</span>.
 <code>mtp</code> should be set to FALSE (see package documentation for
 details), and the participant <code>id</code> variable is set to the
 relevant column name in the dataset. The <code>folds</code> argument is
-the number of <code>folds</code> used in cross-fitting, a
-cross-validation like procedure used to estimate the different nuisance
-functions. If the dataset is very small (e.g., <span class="math inline">\(n &lt;= 75\)</span>), we think it makes sense to
-set <code>folds = 1</code>. Otherwise, we recommend setting
-<code>folds = 2</code>. The <code>learners_trt</code> and
-<code>learners_outcome</code> are the machine learning prediction
-models. We used a GLM and a XGBoost here, but there are many options
-that can be used. See <code>SuperLearner</code> R package for more
-information on the names. Whatever learners that we use (e.g., XGBoost,
-random forest), make sure you install that R package first. In practice,
-setting 2-4 learners is probably sufficient for our purposes. We
-recommend including a GLM as one of them, especially since sample sizes
-are likely to be small-moderate in these applications, and the
-confounders are likely to be low dimensional (e.g., regularization with
-Ridge/LASSO is unlikely to be as important as in many other settings
-where the confounders may be high dimensional). Including some
+the number of <code>folds</code> used in cross-fitting for nuisance
+function estimation. If the dataset is very small (e.g., <span class="math inline">\(n &lt;= 75\)</span>), it may make sense to set
+<code>folds = 1</code>. Otherwise, <code>folds = 2</code> may be
+prefereable. The <code>learners_trt</code> and
+<code>learners_outcome</code> are the machine learning prediction models
+involved in estimating expectancy (<code>learners_trt</code>) and the
+outcome (<code>learners_outcome</code>) based on their respective causes
+(e.g., <span class="math inline">\(A\)</span>, <span class="math inline">\(X\)</span>, <span class="math inline">\(Z\)</span>). We used a GLM and a XGBoost here, but
+there are many options that can be used. See <code>SuperLearner</code> R
+package for more information on the names. Whatever learners that we use
+(e.g., XGBoost, random forest), make sure you install that R package
+first. In practice, setting 2-4 learners is probably sufficient for our
+purposes. We recommend including a GLM as one of them, especially since
+sample sizes are likely to be small-moderate in these applications, and
+the confounders are likely to be low dimensional (e.g., regularization
+with Ridge/LASSO is unlikely to be as important as in many other
+settings where the confounders may be high dimensional). Including some
 algorithms that are flexible (e.g., GAMs, Random Forest, XGBoost) may
 help capture non-linearities and interactions among confounders. As an
 example, we show how to install the packages needed for this Vignette
@@ -1823,30 +1829,30 @@ fit_sdr_A0E0 &lt;- lmtp::lmtp_sdr(
   learners_trt = c(&quot;SL.glm&quot;, &quot;SL.xgboost&quot;, &quot;SL.mean&quot;),
   learners_outcome = c(&quot;SL.xgboost&quot;, &quot;SL.glm&quot;)
 )</code></pre>
-<p>Now that we have fit the above to models, we can extract a contrast
-with a point-estimate, confidence intervals and a p-value. We use the
-function below to compare the two fitted estimates, specifying the
-reference (i.e., the control and low expectancy (<span class="math inline">\(a=0\)</span>, <span class="math inline">\(e=0\)</span>) combination). We set the contrast to
-be on the additive scale, but there may be cases where one might wish to
-use a relative risk or other contrast type.</p>
+<p>Now that we have the two estimates above, we can calculate a
+point-estimate of one of the CDE contrasts, with its confidence interval
+and a p-value. We use the function below to compare the two fitted
+estimates, specifying the reference (i.e., the control and low
+expectancy (<span class="math inline">\(a=0\)</span>, <span class="math inline">\(e=0\)</span>) combination). We set the contrast to
+be on the additive scale here.</p>
 <pre class="r"><code>lmtp::lmtp_contrast(fit_sdr_A1E0, ref = fit_sdr_A0E0, type = &quot;additive&quot;)</code></pre>
 <pre><code>## LMTP Contrast: additive</code></pre>
 <pre><code>## Null hypothesis: theta == 0</code></pre>
 <pre><code>## 
-##   shift   ref estimate std.error conf.low conf.high p.value
-## 1  2.29 -1.22     3.51     0.404     2.72       4.3  &lt;0.001</code></pre>
+##   shift    ref estimate std.error conf.low conf.high p.value
+## 1  2.33 -0.806     3.13     0.109     2.92      3.35  &lt;0.001</code></pre>
 <p>In this dataset, we simulated the true <span class="math inline">\(CDE = 3\)</span>. We can see the confidence
 intervals contain the true value and the point estimate is reasonably
 close to the truth.</p>
 </div>
 <div id="high-expectancy-e1" class="section level3">
 <h3>High Expectancy (<span class="math inline">\(e=1\)</span>)</h3>
-<p>Now let’s fit two functions for the two combinations needed for the
-contrast: <span class="math display">\[ \mathbb{E}[Y(a=1,e=1)
--  Y(a=0,e=1)] .\]</span></p>
-<p>Now let’s repeat these same steps with the two other relevant
-policies for the <span class="math inline">\(e=1\)</span> (high
-expectancy) setting.</p>
+<p>Now let’s estimate the mean counterfactual for the two combinations
+needed for the contrast: <span class="math display">\[
+\mathbb{E}[Y(a=1,e=1) -  Y(a=0,e=1)] .\]</span></p>
+<p>We repeat these same steps with the two other relevant policies for
+the <span class="math inline">\(e=1\)</span> (high expectancy)
+setting.</p>
 <pre class="r"><code># E == 1
 # d_A1_E1
 fit_sdr_A1E1 &lt;- lmtp::lmtp_sdr(
@@ -1885,7 +1891,7 @@ fit_sdr_A0E1 &lt;- lmtp::lmtp_sdr(
 lmtp::lmtp_contrast(fit_sdr_A1E1, ref = fit_sdr_A0E1, type = &quot;additive&quot;)</code></pre>
 <pre><code>## 
 ##   shift   ref estimate std.error conf.low conf.high p.value
-## 1  1.64 -1.42     3.06    0.0393     2.98      3.13  &lt;0.001</code></pre>
+## 1  1.67 -1.43      3.1    0.0412     3.01      3.18  &lt;0.001</code></pre>
 <p>Again we can see the high expectancy contrast yields a value close to
 the true <span class="math inline">\(CDE=3\)</span>.</p>
 </div>
@@ -1895,12 +1901,11 @@ the true <span class="math inline">\(CDE=3\)</span>.</p>
 <p>For use of this code or vignette, please cite the following
 papers:</p>
 <p>Gabriel Loewinger<span class="math inline">\(\ast\)</span>, Mats
-Stensrud, David Yaden, Alex Levis. <a href="https://arxiv.org/abs/2405.18597v1">A Causal Inference Framework
-for Effect Isolation in Randomized Studies with Unmasking</a>. biorXiv
-(2025).</p>
+Stensrud, David Yaden, Alex Levis. A Causal Inference Framework for
+Effect Isolation in Randomized Studies with Unmasking.</p>
 <p>Williams, N. and Díaz, I. (2023), “lmtp: an R package for estimating
 the causal effects of modified treatment policies,” Observational
-Studies, 9, 103–122</p>
+Studies, 9, 103–122.</p>
 <p>Díaz, I., Williams, N., Hoffman, K. L., and Schenck, E. J. (2023),
 “Nonparametric causal effects based on longitudinal modified treatment
 policies,” Journal of the American Statistical Association, 118,
