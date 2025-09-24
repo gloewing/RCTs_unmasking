@@ -20,7 +20,7 @@ sim.subject <- function(TT, g1, g0, p0, risk0, risk_slope, seed, arm){
   
   for(t in 2:TT){
     X[t] <- rbinom(1, size = 1, 
-                   prob = g0 + g1 * max(Y[ 1:(t-1) ]) )# risk# mean(Y[ 1:(t-1) ]))# risk
+                   prob = g0 + g1 * max(Y[ 1:(t-1) ]) )# risk
     Y[t] <- rbinom(1, size = 1, 
                    prob = (risk0 - arm*risk_slope) * X[t] ) # outcome
     Y.culm[t] <- mean(Y[1:t])
