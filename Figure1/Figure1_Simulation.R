@@ -45,7 +45,7 @@ mean(Y[B == 1 & A == 1]) * w_b1a1 +
   mean(Y[B == 0 & A == 0]) * w_b0a0
 mean(Y[A == 1]) - mean(Y[A == 0]) # marginal ATE
 
-myColors2 <- c("#808080", "#4285F4", "#E69F00", "darkgreen", "darkgrey")
+myColors2 <- c("#4285F4","#808080", "#E69F00", "darkgreen", "darkgrey")
 df <- data.frame(Y = Y,
                  B = as.factor(B),
                  A = as.factor(A)) %>%
